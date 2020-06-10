@@ -50,31 +50,24 @@ double PGM::fpart(double x) {
 	return x - floor(x);
 }
 
-void PGM::draw_line(double brightness, int x0, int y0, int x1, int y1, double gamma) {
-	if ((x0 < 0) || (y0 < 0) || (x1 < 0) || (y1 < 0) || (y0 >= height) || (y1 >= height) || (x0 >= width) || (x1 >= width) || (brightness < 0) || (brightness > 255)) throw runtime_error("Error: Wrong arguments");
+void PGM::draw_line(double brightness, double x1, double y1, double x2, double y2, double gamma) {
+	if ((x1 < 0) || (y1 < 0) || (x2 < 0) || (y2 < 0) || (y1 >= height) || (y2 >= height) || (x1 >= width) || (x2 >= width) || (brightness < 0) || (brightness > 255)) throw runtime_error("Error: Wrong arguments");
 	brightness = pow(brightness, gamma);
-	if (x1 < x0) {
-		swap(x0, x1);
-		swap(y0, y1);
-	}
-	double dx = x1 - x0;
-	double dy = y1 - y0;
-	double k = dy / dx;
-	if (dy > dx) {
-		k = dx / dy;
-		swap(x0, y0);
+	bool steep = abs(y2 - y1) > abs(x2 - x1);
+	if (steep) {
 		swap(x1, y1);
+		swap(x2, y2);
 	}
-	double step = y0 + k;
-	if (dy > dx) {
-		draw_pix(y0, x0, 1, gamma, brightness);
-		draw_pix(y0 + 1, x0, 0, gamma, brightness);
+	if (x2 < x1) {
+		swap(x1, x2);
+		swap(y1, y2);
 	}
-	else {
-		draw_pix(x0, y0, 1, gamma, brightness);
-		draw_pix(x0, y0 + 1, 0, gamma, brightness);
-	}
-	if (dy > dx) {
+	double dx = x2 - x1;
+	double dy = y2 - y1;
+	double k = dy / dx;
+	
+	double step = y1 + k;
+	if (steep) {
 		draw_pix(y1, x1, 1, gamma, brightness);
 		draw_pix(y1 + 1, x1, 0, gamma, brightness);
 	}
@@ -82,8 +75,16 @@ void PGM::draw_line(double brightness, int x0, int y0, int x1, int y1, double ga
 		draw_pix(x1, y1, 1, gamma, brightness);
 		draw_pix(x1, y1 + 1, 0, gamma, brightness);
 	}
-	for (int x = x0 + 1; x < x1; x++) {
-		if (dy > dx) {
+	if (steep) {
+		draw_pix(y2, x2, 1, gamma, brightness);
+		draw_pix(y2 + 1, x2, 0, gamma, brightness);
+	}
+	else {
+		draw_pix(x2, y2, 1, gamma, brightness);
+		draw_pix(x2, y2 + 1, 0, gamma, brightness);
+	}
+	for (double x = x1 + 1; x < x2; x++) {
+		if (steep) {
 			draw_pix(floor(step), x, (1 - fpart(step)), gamma, brightness);
 			draw_pix(floor(step) + 1, x, fpart(step), gamma, brightness);
 		}

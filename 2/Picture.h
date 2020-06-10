@@ -15,7 +15,7 @@ class PGM{
 public:
 	PGM(string);
 	void output(string);
-	void draw_line(double, int, int, int, int, double);
+	void draw_line(double, double, double, double, double, double);
 	void draw_pix(int, int, double, double, int);
 private:
 	double fpart(double x);
