@@ -2,10 +2,16 @@
 
 PGM::PGM(string name, bool gradient, double gamma) {
 	ifstream in(name, ios_base::binary);
-	if (!in.is_open()) throw runtime_error("Error: Unable to open file");
+	if (!in.is_open()) {
+		in.close();
+		throw runtime_error("Error: Unable to open input file");
+	}
 	unsigned char type[2];
 	in >> type[0] >> type[1];
-	if(type[0]!='P' || type[1]!='5') throw runtime_error("Error: File format is not P5");
+	if (type[0] != 'P' || type[1] != '5') {
+		in.close();
+		throw runtime_error("Error: File format is not P5");
+	}
 	in >> width >> height >> depth;
 	if (width <= 0 || height <= 0 || depth <= 0 || depth > 255) {
 		in.close();
@@ -57,7 +63,7 @@ PGM::PGM(string name, bool gradient, double gamma) {
 void PGM::output(string name, double gamma) {
 	ofstream out(name, ios::binary);
 	if (!out.is_open()) {
-		throw runtime_error("Error: File is not found");
+		throw runtime_error("Error: Unable to open input file");
 	}
 	out << "P5" << endl << width << ' ' << height << endl << depth << endl;
 	for (int i = 0; i < height; i++) {
