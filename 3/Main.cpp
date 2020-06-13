@@ -7,23 +7,23 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	string input, output;
-	bool gradient;
-	int dithering, bitrate;
-	double gamma;
+	bool gradient = 0;
+	int dithering = 0, bitrate = 0;
+	double gamma = 0;
 	try{
-		string input = argv[1];
-		string output = argv[2];
-		bool gradient = atoi(argv[3]);
-		int dithering = atoi(argv[4]);
-		int bitrate = atoi(argv[5]);
-		double gamma = atof(argv[6]);
+		input = argv[1];
+		output = argv[2];
+		gradient = atoi(argv[3]);
+		dithering = atoi(argv[4]);
+		bitrate = atoi(argv[5]);
+		gamma = atof(argv[6]);
 	}
 	catch (exception e) {
 		cerr << "Error: Unable to convert arguments";
 		return 1;
 	}
-	if (gradient < 0 || gradient>1 || dithering < 0 || dithering>7 || bitrate < 1 || bitrate>8 || gamma < 0) {
-		cerr << "Error: Wrong arguments";
+	if (gradient < 0 || gradient > 1 || dithering < 0 || dithering > 7 || bitrate < 1 || bitrate > 8 || gamma < 0) {
+		cerr << gradient << "Error: Wrong arguments" << dithering << ' ' << bitrate << ' ' << gamma;
 		return 1;
 	}
 	PGM *picture;
