@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	if (gradient < 0 || gradient > 1 || dithering < 0 || dithering > 7 || bitrate < 1 || bitrate > 8 || gamma < 0) {
-		cerr << gradient << "Error: Wrong arguments" << dithering << ' ' << bitrate << ' ' << gamma;
+		cerr << "Error: Wrong arguments";
 		return 1;
 	}
 	PGM *picture;
