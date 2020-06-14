@@ -35,7 +35,7 @@ PGM::PGM(string name, bool gradient) {
 					throw runtime_error("Error: Not enough pixels");
 				}
 				in.read(&pixel, sizeof(char));
-				pgm[i][j] = pixel;
+				pgm[i][j] = (unsigned char)pixel;
 			}
 		}
 	}
