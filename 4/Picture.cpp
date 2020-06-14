@@ -2,12 +2,12 @@
 
 PPM::PPM(string name) {
 	ifstream in(name, ios_base::binary);
-	if (!in.is_open()) throw runtime_error("Error: Unable to open file");
+	if (!in.is_open()) throw runtime_error("Error: Unable to open input file");
 	char type[2];
 	in >> type[0] >> type[1];
 	if (type[0] != 'P' || type[1] != '6') {
 		in.close();
-		throw runtime_error("Error: Wrong file format");
+		throw runtime_error("Error: Wrong input file format");
 	}
 	in >> width >> height >> depth;
 	char r,g,b;
@@ -26,28 +26,34 @@ PPM::PPM(string name) {
 
 PPM::PPM(string name1, string name2, string name3) {
 	ifstream in1(name1, ios_base::binary);
-	if (!in1.is_open()) throw runtime_error("Error: Unable to open file 1");
+	if (!in1.is_open()) throw runtime_error("Error: Unable to input open file 1");
 	ifstream in2(name2, ios_base::binary);
-	if (!in2.is_open()) throw runtime_error("Error: Unable to open file 2");
+	if (!in2.is_open()) {
+		in1.close();
+		throw runtime_error("Error: Unable to input open file 2");
+	}
 	ifstream in3(name3, ios_base::binary);
-	if (!in3.is_open()) throw runtime_error("Error: Unable to open file 3");
+	if (!in3.is_open()) {
+		in1.close();in2.close();
+		throw runtime_error("Error: Unable to input open file 3");
+	}
 	char type[2];
 	in1 >> type[0] >> type[1];
 	if (type[0] != 'P' || type[1] != '5') {
 		in1.close();in2.close();in3.close();
-		throw runtime_error("Error: Wrong file 1 format");
+		throw runtime_error("Error: Wrong input file 1 format");
 	}
 	in1 >> width >> height >> depth;
 	in2 >> type[0] >> type[1];
 	if (type[0] != 'P' || type[1] != '5') {
 		in1.close();in2.close();in3.close();
-		throw runtime_error("Error: Wrong file 2 format");
+		throw runtime_error("Error: Wrong input file 2 format");
 	}
 	in2 >> width >> height >> depth;
 	in3 >> type[0] >> type[1];
 	if (type[0] != 'P' || type[1] != '5') {
 		in1.close();in2.close();in3.close();
-		throw runtime_error("Error: Wrong file 3 format");
+		throw runtime_error("Error: Wrong input file 3 format");
 	}
 	in3 >> width >> height >> depth;	
 
@@ -73,7 +79,7 @@ PPM::PPM(string name1, string name2, string name3) {
 void PPM::output(string name) {
 	ofstream out(name, ios::binary);
 	if (!out.is_open()) {
-		throw runtime_error("Error: File is not found");
+		throw runtime_error("Error: Unable to open output file");
 	}
 	out << "P6" << endl << width << ' ' << height << endl << depth << endl;
 	for (int i = 0; i < height; i++) {
@@ -91,13 +97,15 @@ void PPM::output(string name1, string name2, string name3) {
 	ofstream out2(name2, ios::binary);
 	ofstream out3(name3, ios::binary);
 	if (!out1.is_open()) {
-		throw runtime_error("Error: File 1 is not found");
+		throw runtime_error("Error: Unable to open output file 1");
 	}
 	if (!out2.is_open()) {
-		throw runtime_error("Error: File 2 is not found");
+		out1.close();
+		throw runtime_error("Error: Unable to open output file 2");
 	}
 	if (!out3.is_open()) {
-		throw runtime_error("Error: File 3 is not found");
+		out1.close(); out2.close();
+		throw runtime_error("Error: Unable to open output file 3");
 	}
 	out1 << "P5" << endl << width << ' ' << height << endl << depth << endl;
 	out2 << "P5" << endl << width << ' ' << height << endl << depth << endl;

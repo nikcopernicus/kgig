@@ -52,17 +52,30 @@ int main(int argc, char* argv[]) {
 		}
 		if (in_count == 3) {
 			string s1, s2, s3;
-			for (int i = 0;i < input.size(); i++) {
-				if (input[i] != '.') {
-					s1 += input[i]; 
-					s2 += input[i]; 
-					s3 += input[i];
-				}
-				else {
-					s1 += "_1.pgm";
-					s2 += "_2.pgm";
-					s3 += "_3.pgm";
+			int pnt = -1;
+			for (int i = input.size() - 1; i >= 0; i--) {
+				if (input[i] == '.') {
+					pnt = i;
 					break;
+				}
+			}
+			if (pnt == -1) {
+				cerr << "Error: Wrong input file pattern";
+				return 1;
+			}
+			else {
+				for (int i = 0;i < input.size(); i++) {
+					if (i!=pnt) {
+						s1 += input[i];
+						s2 += input[i];
+						s3 += input[i];
+					}
+					else {
+						s1 += "_1.pgm";
+						s2 += "_2.pgm";
+						s3 += "_3.pgm";
+						break;
+					}
 				}
 			}
 			picture = new PPM(s1,s2,s3);
@@ -86,17 +99,30 @@ int main(int argc, char* argv[]) {
 		}
 		if (out_count == 3) {
 			string s1, s2, s3;
-			for (int i = 0;i < output.size(); i++) {
-				if (output[i] != '.') {
-					s1 += output[i];
-					s2 += output[i];
-					s3 += output[i];
-				}
-				else {
-					s1 += "_1.pgm";
-					s2 += "_2.pgm";
-					s3 += "_3.pgm";
+			int pnt = -1;
+			for (int i = output.size() - 1; i >= 0; i--) {
+				if (output[i] == '.') {
+					pnt = i;
 					break;
+				}
+			}
+			if (pnt == -1) {
+				cerr << "Error: Wrong input file pattern";
+				return 1;
+			}
+			else {
+				for (int i = 0;i < output.size(); i++) {
+					if (i != pnt) {
+						s1 += output[i];
+						s2 += output[i];
+						s3 += output[i];
+					}
+					else {
+						s1 += "_1.pgm";
+						s2 += "_2.pgm";
+						s3 += "_3.pgm";
+						break;
+					}
 				}
 			}
 			picture->output(s1, s2, s3);
