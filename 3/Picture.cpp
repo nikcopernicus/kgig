@@ -21,7 +21,7 @@ PGM::PGM(string name, bool gradient, double gamma) {
 	if (gradient) {
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				pgm[i][j] = (j % width) * 256 / width;
+				pgm[i][j] = (j % width) * 255 / width;
 			}
 		}
 	}
@@ -81,7 +81,7 @@ void PGM::output(string name, double gamma, int bitrate) {
 					temp = (211. * pow(temp, 5. / 12.) - 11.) / 200.;
 				}
 			}
-			pgm[i][j] = temp * ((1 << bitrate) - 1);;
+			pgm[i][j] = round(temp * (double)((1 << bitrate)-1));
 			out << pgm[i][j];
 		}
 	}
