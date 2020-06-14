@@ -30,7 +30,6 @@ int main(int argc, char* argv[]) {
 		picture = new PGM(input,gradient,gamma);
 	}
 	catch (exception e) {
-		delete picture;
 		cerr << e.what();
 		return 1;
 	}
