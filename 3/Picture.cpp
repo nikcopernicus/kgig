@@ -21,7 +21,7 @@ PGM::PGM(string name, bool gradient) {
 	if (gradient) {
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				pgm[i][j] = (j * 256.) / width;
+				pgm[i][j] = (j * 256.) / (width);
 			}
 		}
 	}
@@ -44,12 +44,12 @@ PGM::PGM(string name, bool gradient) {
 }
 
 
-void PGM::output(string name, int bitrate) {
+void PGM::output(string name) {
 	ofstream out(name, ios::binary);
 	if (!out.is_open()) {
 		throw runtime_error("Error: Unable to open input file");
 	}
-	out << "P5" << endl << width << ' ' << height << endl << ((1 << bitrate) - 1) << endl;
+	out << "P5" << endl << width << ' ' << height << endl << depth << endl;
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			out << (unsigned char)pgm[i][j];
@@ -60,12 +60,17 @@ void PGM::output(string name, int bitrate) {
 }
 
 double PGM::threshold_color(double color, int bitrate) {
-	unsigned char temp = (unsigned char)color & (((1 << bitrate) - 1) << (8 - bitrate));
-	unsigned char c = 0;
-	for (int i = 0; i < 8 / bitrate + 1; i++) {
-		c = c | ((unsigned char)(temp >> bitrate * i));
+	vector<bool> arr(bitrate, 0);
+	unsigned char temp = (int)color >> (8 - bitrate);
+	for (int i = 0;i < bitrate;i++) {
+		arr[bitrate - i - 1] = temp & (1 << i);
 	}
-	return c;
+	temp = 0;
+	for (int i = 0;i < 8;i++) {
+		temp = temp << 1;
+		temp = temp | arr[i % bitrate];
+	}
+	return temp;
 }
 
 double treshhold_map[8][8] = {
@@ -89,7 +94,7 @@ void PGM::dithering(int type, int bitrate, double gamma) {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			double temp = pgm[i][j] / depth;
-			if (gamma!=0) {
+			if (gamma) {
 				temp = min(1.,pow(temp, gamma));
 			}
 			else {
@@ -301,7 +306,8 @@ void PGM::dithering(int type, int bitrate, double gamma) {
 					temp = (211. * pow(temp, 5. / 12.) - 11.) / 200.;
 				}
 			}
-			pgm[i][j] = temp * ((1 << bitrate) - 1);
+			pgm[i][j] = round(temp * (double)((1 << bitrate) - 1));
 		}
 	}
+	depth = (1 << bitrate) - 1;
 }

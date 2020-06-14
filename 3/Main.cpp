@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	try {
-		picture->output(output, bitrate);
+		picture->output(output);
 	}
 	catch (exception e) {
 		delete picture;
@@ -50,13 +50,10 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	delete picture;
-	
-	/*PGM pic("test3.pgm", 1);
-	pic.dithering(7, 2, 1);
-	pic.output("out.pgm", 2);
-	/*PGM pic2("test2.pgm", 0, 2.2);
-	pic2.dithering(0, 8);
-	pic2.output("out2.pgm", 2.2, 8);*/
-	
+	/*
+	PGM pic("test3.pgm", 1);
+	pic.dithering(0, 5, 1);
+	pic.output("out.pgm");
+	*/
 	return 0;
 }
