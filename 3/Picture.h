@@ -11,7 +11,7 @@ using namespace std;
 class PGM{
 public:
 	PGM(string,bool,double);
-	void output(string, double);
+	void output(string, double, int);
 	void dithering(int, int);
 private:
 	int width, height, depth;

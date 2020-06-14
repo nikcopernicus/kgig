@@ -21,7 +21,7 @@ PGM::PGM(string name, bool gradient, double gamma) {
 	if (gradient) {
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				pgm[i][j] = (j % width) * depth / width;
+				pgm[i][j] = (j % width) * 256 / width;
 			}
 		}
 	}
@@ -38,34 +38,35 @@ PGM::PGM(string name, bool gradient, double gamma) {
 				pgm[i][j] = pixel;
 			}
 		}
-		for (int i = 0; i < height; i++) {
-			for (int j = 0; j < width; j++) {
-				double temp = (double)pgm[i][j] / (double)depth;
-				if (gamma) {
-					pgm[i][j] = min(pow(temp, gamma) * (double)depth, (double)depth);
-				}
-				else {
-					if (temp <= 0.04045) {
-						temp = 25. / 323. * temp;
-					}
-					else {
-						temp = pow((200. * temp + 11.) / 211., 12. / 5.);
-					}
-				}
-				pgm[i][j] = temp * (double)depth;
-			}
-		}
 	}
 	in.close();	
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			double temp = (double)pgm[i][j] / (double)depth;
+			if (gamma) {
+				temp = min(pow(temp, gamma), 1.);
+			}
+			else {
+				if (temp <= 0.04045) {
+					temp = 25. / 323. * temp;
+				}
+				else {
+					temp = pow((200. * temp + 11.) / 211., 12. / 5.);
+				}
+			}
+			pgm[i][j] = temp * (double)depth;
+		}
+	}
+	
 }
 
 
-void PGM::output(string name, double gamma) {
+void PGM::output(string name, double gamma, int bitrate) {
 	ofstream out(name, ios::binary);
 	if (!out.is_open()) {
 		throw runtime_error("Error: Unable to open input file");
 	}
-	out << "P5" << endl << width << ' ' << height << endl << depth << endl;
+	out << "P5" << endl << width << ' ' << height << endl << (1 << bitrate) - 1 << endl;
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			double temp = (double)pgm[i][j] / (double)depth;
@@ -74,17 +75,16 @@ void PGM::output(string name, double gamma) {
 			}
 			else {
 				if (temp <= 0.0031308) {
-					pgm[i][j] = 323. / 25. * temp * (double)depth;
+					temp = 323. / 25. * temp ;
 				}
 				else {
-					pgm[i][j] = (211. * pow(temp, 5. / 12.) - 11.) / 200. * (double)depth;
+					temp = (211. * pow(temp, 5. / 12.) - 11.) / 200.;
 				}
 			}
-			pgm[i][j] = temp * (double)depth;
+			pgm[i][j] = temp * ((1 << bitrate) - 1);;
 			out << pgm[i][j];
 		}
 	}
-
 	out.flush();
 	out.close();
 }
