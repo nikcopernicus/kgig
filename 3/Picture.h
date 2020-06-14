@@ -10,13 +10,13 @@ using namespace std;
 
 class PGM{
 public:
-	PGM(string,bool,double);
-	void output(string, double, int);
-	void dithering(int, int);
+	PGM(string,bool);
+	void output(string, int);
+	void dithering(int, int, double);
 private:
 	int width, height, depth;
-	vector<vector<unsigned char>>pgm;
-	unsigned char threshold_color(unsigned char, int);
+	vector<vector<double>>pgm;
+	double threshold_color(double, int);
 };
 
 

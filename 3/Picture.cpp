@@ -1,6 +1,6 @@
 #include "Picture.h"
 
-PGM::PGM(string name, bool gradient, double gamma) {
+PGM::PGM(string name, bool gradient) {
 	ifstream in(name, ios_base::binary);
 	if (!in.is_open()) {
 		in.close();
@@ -17,11 +17,11 @@ PGM::PGM(string name, bool gradient, double gamma) {
 		in.close();
 		throw runtime_error("Error: Wrong width/height in file");
 	}
-	pgm.assign(height,vector<unsigned char>(width));
+	pgm.assign(height,vector<double>(width));
 	if (gradient) {
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				pgm[i][j] = (j % width) * 255 / width;
+				pgm[i][j] = (j * 256.) / width;
 			}
 		}
 	}
@@ -40,67 +40,32 @@ PGM::PGM(string name, bool gradient, double gamma) {
 		}
 	}
 	in.close();	
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			double temp = (double)pgm[i][j] / (double)depth;
-			if (gamma) {
-				temp = min(pow(temp, gamma), 1.);
-			}
-			else {
-				if (temp <= 0.04045) {
-					temp = 25. / 323. * temp;
-				}
-				else {
-					temp = pow((200. * temp + 11.) / 211., 12. / 5.);
-				}
-			}
-			pgm[i][j] = temp * (double)depth;
-		}
-	}
 	
 }
 
 
-void PGM::output(string name, double gamma, int bitrate) {
+void PGM::output(string name, int bitrate) {
 	ofstream out(name, ios::binary);
 	if (!out.is_open()) {
 		throw runtime_error("Error: Unable to open input file");
 	}
-	out << "P5" << endl << width << ' ' << height << endl << (1 << bitrate) - 1 << endl;
+	out << "P5" << endl << width << ' ' << height << endl << ((1 << bitrate) - 1) << endl;
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
-			double temp = (double)pgm[i][j] / (double)depth;
-			if (gamma) {
-				temp = pow(temp, 1. / gamma);
-			}
-			else {
-				if (temp <= 0.0031308) {
-					temp = 323. / 25. * temp ;
-				}
-				else {
-					temp = (211. * pow(temp, 5. / 12.) - 11.) / 200.;
-				}
-			}
-			pgm[i][j] = round(temp * (double)((1 << bitrate)-1));
-			out << pgm[i][j];
+			out << (unsigned char)pgm[i][j];
 		}
 	}
 	out.flush();
 	out.close();
 }
 
-unsigned char PGM::threshold_color(unsigned char color, int bitrate) {
-	vector<bool> arr(bitrate,0);
-	unsigned char temp = color >> (8 - bitrate);
-	for (int i = 0; i < bitrate; i++) {
-		arr[bitrate-i-1]=temp&(1<<i);
+double PGM::threshold_color(double color, int bitrate) {
+	unsigned char temp = (unsigned char)color & (((1 << bitrate) - 1) << (8 - bitrate));
+	unsigned char c = 0;
+	for (int i = 0; i < 8 / bitrate + 1; i++) {
+		c = c | ((unsigned char)(temp >> bitrate * i));
 	}
-	temp = 0;
-	for (int i = 0; i < 8; i++) {
-		temp = temp << 1;
-		temp = temp | arr[i%bitrate];
-	}
-	return temp;
+	return c;
 }
 
 double treshhold_map[8][8] = {
@@ -119,7 +84,25 @@ double halftone_map[4][4] = {
 	{10, 15, 6, 2},
 	{5, 9, 3, 1},
 };
-void PGM::dithering(int type, int bitrate) {
+
+void PGM::dithering(int type, int bitrate, double gamma) {
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			double temp = pgm[i][j] / depth;
+			if (gamma!=0) {
+				temp = min(1.,pow(temp, gamma));
+			}
+			else {
+				if (temp <= 0.04045) {
+					temp = 25. / 323. * temp;
+				}
+				else {
+					temp = pow((200. * temp + 11.) / 211., 12. / 5.);
+				}
+			}
+			pgm[i][j] = temp * depth;
+		}
+	}
 	switch (type) {
 	case 0:
 		for (int i = 0; i < height; i++) {
@@ -131,27 +114,29 @@ void PGM::dithering(int type, int bitrate) {
 	case 1:
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				double color1 = (double)pgm[i][j] / (double)depth,
+				double resizer = depth / ((1<<bitrate) - 1);
+				double color1 = pgm[i][j],
 					color2 = (treshhold_map[i % 8][j % 8] / 64) - 0.5;
-				double color = max(min(color1 + color2, 1.), 0.);
-				pgm[i][j] = threshold_color((unsigned char)(color * (double)depth), bitrate);
+				double color = min(max(color1 + color2 * resizer, 0.), 255.);
+				pgm[i][j] = threshold_color((unsigned char)color,  bitrate);
 			} 
 		}
 		break;
 	case 2:
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				double color1 = (double)pgm[i][j] / (double)depth,
+				double resizer = depth / ((1 << bitrate) - 1);
+				double color1 = pgm[i][j],
 					color2 = (rand()*1.)/(RAND_MAX*1.) - 0.5;
-				double color = max(min(color1 + color2, 1.), 0.);
-				pgm[i][j] = threshold_color((unsigned char)(color * (double)depth), bitrate);
+				double color = min(max(color1 + color2 * resizer, 0.), 255.);
+				pgm[i][j] = threshold_color((unsigned char)color, bitrate);
 			}
 		}
 		break;
 	case 3:
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				unsigned char
+				double
 					oldpixel = pgm[i][j],
 					newpixel = threshold_color(oldpixel, bitrate);
 				double	quant_error = (oldpixel - newpixel);
@@ -174,7 +159,7 @@ void PGM::dithering(int type, int bitrate) {
 	case 4:
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				unsigned char
+				double
 					oldpixel = pgm[i][j],
 					newpixel = threshold_color(oldpixel, bitrate);
 				double	quant_error = (oldpixel - newpixel);
@@ -221,7 +206,7 @@ void PGM::dithering(int type, int bitrate) {
 	case 5:
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				unsigned char
+				double
 					oldpixel = pgm[i][j],
 					newpixel = threshold_color(oldpixel, bitrate);
 				double	quant_error = (oldpixel - newpixel);
@@ -262,7 +247,7 @@ void PGM::dithering(int type, int bitrate) {
 	case 6:
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				unsigned char
+				double
 					oldpixel = pgm[i][j],
 					newpixel = threshold_color(oldpixel, bitrate);
 				double	quant_error = (oldpixel - newpixel);
@@ -291,15 +276,32 @@ void PGM::dithering(int type, int bitrate) {
 	case 7:
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				double color1 = (double)pgm[i][j] / (double)depth,
-					color2 = (halftone_map[i % 4][j % 4] / 16.) - 0.5;
-				double color = max(min(color1 + color2, 1.), 0.);
-				pgm[i][j] = threshold_color((unsigned char)(color * (double)depth), bitrate);
+				double resizer = depth / ((1 << bitrate) - 1);
+				double color1 = pgm[i][j],
+					color2 = (halftone_map[i % 4][j % 4] / 17.) - 0.5;
+				double color = min(max(color1 + color2 * resizer, 0.), 255.);
+				pgm[i][j] = threshold_color((unsigned char)color, bitrate);
 			}
 		}
 		break;
 	default:
-		throw runtime_error("Error: Wrong algorithm type");
 		break;
+	}
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			double temp = pgm[i][j] / depth;
+			if (gamma) {
+				temp = pow(temp, 1. / gamma);
+			}
+			else {
+				if (temp <= 0.0031308) {
+					temp = 323. / 25. * temp;
+				}
+				else {
+					temp = (211. * pow(temp, 5. / 12.) - 11.) / 200.;
+				}
+			}
+			pgm[i][j] = temp * ((1 << bitrate) - 1);
+		}
 	}
 }

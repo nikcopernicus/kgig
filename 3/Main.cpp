@@ -27,14 +27,14 @@ int main(int argc, char* argv[]) {
 	}
 	PGM *picture;
 	try {
-		picture = new PGM(input,gradient,gamma);
+		picture = new PGM(input,gradient);
 	}
 	catch (exception e) {
 		cerr << e.what();
 		return 1;
 	}
 	try {
-		picture->dithering(dithering, bitrate);
+		picture->dithering(dithering, bitrate, gamma);
 	}
 	catch (exception e) {
 		delete picture;
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	try {
-		picture->output(output,gamma, bitrate);
+		picture->output(output, bitrate);
 	}
 	catch (exception e) {
 		delete picture;
@@ -50,13 +50,13 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	delete picture;
-	/*
-	PGM pic("test2.pgm", 0, 1.0);
-	pic.dithering(0, 8);
-	pic.output("out.pgm",1.0, 8);
-	PGM pic2("test2.pgm", 0, 2.2);
+	
+	/*PGM pic("test3.pgm", 1);
+	pic.dithering(7, 2, 1);
+	pic.output("out.pgm", 2);
+	/*PGM pic2("test2.pgm", 0, 2.2);
 	pic2.dithering(0, 8);
-	pic2.output("out2.pgm", 2.2, 8);
-	*/
+	pic2.output("out2.pgm", 2.2, 8);*/
+	
 	return 0;
 }
