@@ -129,7 +129,7 @@ void PPM::HSL_RGB() {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			double h = ppm[i][j].r / 255. * 360, s = ppm[i][j].g / 255., l = ppm[i][j].b / 255.;
-			double q = l < 0.5 ? l * (1. + s) : l + s - l * s;
+			double q = l < 0.5 ? l * (1. + s) : l + s - (l * s);
 			double p = 2. * l - q;
 			double h_k = h / 360.;
 			double t_r = h_k + 1. / 3. > 1 ? h_k + 1. / 3 - 1 : h_k + 1. / 3. < 0 ? h_k + 1. / 3 + 1 : h_k + 1. / 3;
@@ -152,12 +152,12 @@ void PPM::RGB_HSL() {
 			double mx = max({ r,g,b }), mn = min({ r,g,b });
 			double h = 0, l = (mx + mn) / 2, s = 0;
 			if (mx == mn) h = 0;
-			else if ((mx == r) && (g >= b)) h = 60 * (g - b) / (mx - mn) + 0;
-			else if ((mx == r) && (g < b)) h = 60 * (g - b) / (mx - mn) + 360;
-			else if (mx == g) h = 60 * (b - r) / (mx - mn) + 120;
-			else if (mx == b) h = 60 * (r - g) / (mx - mn) + 240;
+			else if ((mx == r) && (g >= b)) h = 60. * (g - b) / (mx - mn) + 0.;
+			else if ((mx == r) && (g < b)) h = 60. * (g - b) / (mx - mn) + 360.;
+			else if (mx == g) h = 60. * (b - r) / (mx - mn) + 120.;
+			else if (mx == b) h = 60. * (r - g) / (mx - mn) + 240.;
 			if (mx == mn || l == 0) s = 0;
-			else if (0 < l && l < 0.5) s = (mx - mn) / (2 * l);
+			else if (0 < l && l <= 0.5) s = (mx - mn) / (2 * l);
 			else if (0.5 < l && l < 1) s = (mx - mn) / (2 - 2 * l);
 			ppm[i][j] = {
 				(unsigned char)round(h / 360. * 255.),

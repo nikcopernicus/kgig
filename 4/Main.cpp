@@ -2,9 +2,11 @@
 
 int main(int argc, char* argv[]) {
 	/*
-	PPM pic("test.ppm");
-	pic.convert("RGB", "HSL");
-	pic.output("z.ppm")
+	PPM pic("225H_RGB.ppm");
+	pic.convert("RGB", "HSV");
+	pic.output("225H_HSL_2.ppm");
+	pic.convert("HSV", "RGB");
+	pic.output("225H_HSL_3.ppm");
 	*/
 	if (argc != 11) {
 		cerr << "Error: Wrong number of arguments";
