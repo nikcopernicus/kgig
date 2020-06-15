@@ -8,7 +8,7 @@
 using namespace std;
 
 struct color {
-	unsigned char r, g, b;
+	int r, g, b;
 };
 
 class PNM{

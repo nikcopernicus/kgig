@@ -72,14 +72,14 @@ void PNM::output(string name) {
 	case '5':
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				out << pnm[i][j].r;
+				out << (unsigned char)pnm[i][j].r;
 			}
 		}
 		break;
 	case '6':
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				out << pnm[i][j].r << pnm[i][j].g << pnm[i][j].b;
+				out << (unsigned char)pnm[i][j].r << (unsigned char)pnm[i][j].g << (unsigned char)pnm[i][j].b;
 			}
 		}
 		break;
@@ -201,26 +201,28 @@ void PNM::auto_brightness(int transformation, double offset, double multiplier) 
 		int mx = 255, mn = 0;
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				cnt[(int)pnm[i][j].r]++;
-				cnt[(int)pnm[i][j].g]++;
-				cnt[(int)pnm[i][j].b]++;
+				cnt[pnm[i][j].r]++;
+				cnt[pnm[i][j].g]++;
+				cnt[pnm[i][j].b]++;
 			}
 		}
 		int todelete = (int)round(width * height * 3 * 0.0039);
-		for (int deletecount = todelete;deletecount >= cnt[mn];deletecount-=cnt[mn]) {
+		
+		for (int deletecount = todelete;deletecount > cnt[mn];deletecount -= cnt[mn]) {
 			mn++;
-		}
-		for (int deletecount = todelete;deletecount >= cnt[mx];deletecount -= cnt[mx]) {
+		}mn++;
+		for (int deletecount = todelete;deletecount > cnt[mx];deletecount -= cnt[mx]) {
 			mx--;
 		}
+
 		offset = (int)mn;
 		multiplier = 255. / ((int)mx - (int)mn);
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
 				pnm[i][j] = {
-					(unsigned char)max(min((int)round((pnm[i][j].r - offset) * multiplier),255),0),
-					(unsigned char)max(min((int)round((pnm[i][j].g - offset) * multiplier),255),0),
-					(unsigned char)max(min((int)round((pnm[i][j].b - offset) * multiplier),255),0)
+					(unsigned char)max(min((int)round(((double)pnm[i][j].r - offset) * multiplier),255),0),
+					(unsigned char)max(min((int)round(((double)pnm[i][j].g - offset) * multiplier),255),0),
+					(unsigned char)max(min((int)round(((double)pnm[i][j].b - offset) * multiplier),255),0)
 				};
 			}
 		}
@@ -231,14 +233,14 @@ void PNM::auto_brightness(int transformation, double offset, double multiplier) 
 		int mx = 255, mn = 0;
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				cnt[(int)pnm[i][j].r]++;
+				cnt[pnm[i][j].r]++;
 			}
 		}
 		int todelete = (int)round(width * height * 0.0039);
-		for (int deletecount = todelete;deletecount >= cnt[mn];deletecount -= cnt[mn]) {
+		for (int deletecount = todelete;deletecount > cnt[mn];deletecount -= cnt[mn]) {
 			mn++;
 		}
-		for (int deletecount = todelete;deletecount >= cnt[mx];deletecount -= cnt[mx]) {
+		for (int deletecount = todelete;deletecount > cnt[mx];deletecount -= cnt[mx]) {
 			mx--;
 		}
 		offset = (int)mn;
@@ -246,7 +248,7 @@ void PNM::auto_brightness(int transformation, double offset, double multiplier) 
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
 				pnm[i][j] = {
-					(unsigned char)max(min((int)round((pnm[i][j].r - offset) * multiplier),255),0),
+					(unsigned char)max(min((int)round(((double)pnm[i][j].r - offset) * multiplier),255),0),
 					pnm[i][j].g,
 					pnm[i][j].b
 				};
