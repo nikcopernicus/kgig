@@ -146,7 +146,7 @@ void PNM::auto_brightness(int transformation, double offset, double multiplier) 
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
 				pnm[i][j] = {
-					(unsigned char)max(min((int)round((pnm[i][j].r - offset) * multiplier),255),0),
+					(unsigned char)max(min((int)round(((double)pnm[i][j].r - offset) * multiplier),255),0),
 					pnm[i][j].g,
 					pnm[i][j].b
 				};
@@ -314,5 +314,5 @@ void PNM::auto_brightness(int transformation, double offset, double multiplier) 
 		}
 		YCbCr_601_RGB();
 	}
-	cout << offset << ' ' << multiplier;
+	if (transformation > 1)cout << offset << ' ' << multiplier;
 }
