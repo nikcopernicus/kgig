@@ -104,9 +104,9 @@ void PNM::YCbCr_601_RGB() {
 			double r = y + (2. - 2. * k_r) * c_r,
 				g = y - (k_b / k_g) * (2. - 2. * k_b) * c_b - (k_r / k_g) * (2. - 2. * k_r) * c_r,
 				b = y + (2. - 2. * k_b) * c_b;
-			pnm[i][j].r = round(r * 255);
-			pnm[i][j].g = round(g * 255);
-			pnm[i][j].b = round(b * 255);
+			pnm[i][j].r = max(min((int)round(r * 255), 255), 0);
+			pnm[i][j].g = max(min((int)round(g * 255), 255), 0);
+			pnm[i][j].b = max(min((int)round(b * 255), 255), 0);
 		}
 	}
 }
@@ -119,9 +119,9 @@ void PNM::RGB_YCbCr_601() {
 			double y = k_r * r + k_g * g + k_b * b,
 				c_b = (b - y) / (2. * (1 - k_b)),
 				c_r = (r - y) / (2. * (1 - k_r));
-			pnm[i][j].r = (int)round(y * 255);
-			pnm[i][j].g = (int)round((c_b + 0.5) * 255);
-			pnm[i][j].b = (int)round((c_r + 0.5) * 255);
+			pnm[i][j].r = max(min((int)round(y * 255), 255), 0);
+			pnm[i][j].g = max(min((int)round((c_b + 0.5) * 255), 255), 0);
+			pnm[i][j].b = max(min((int)round((c_r + 0.5) * 255), 255), 0);
 		}
 	}
 }
