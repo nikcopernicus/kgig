@@ -18,8 +18,8 @@ int main(int argc, char* argv[]) {
 		mode = atoi(argv[3]);
 		if (mode < 2) {
 			if (argc == 6) {
-				int offset = atoi(argv[5]);
-				double multiplier = atof(argv[6]);
+				int offset = atoi(argv[4]);
+				double multiplier = atof(argv[5]);
 			}
 			else {
 				cerr << "Error: Wrong number of arguments (need 6 args for mode < 2)";
