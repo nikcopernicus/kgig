@@ -8,14 +8,16 @@
 using namespace std;
 
 struct color {
-	int r, g, b;
+	int r;
+	int g;
+	int b;
 };
 
 class PNM{
 public:
 	PNM(string);
 	void output(string);
-	void auto_brightness(int, double, double);
+	void auto_brightness(int, int, double);
 private:
 	int width, height, depth; 
 	pair<unsigned char, unsigned char>type;

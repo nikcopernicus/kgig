@@ -13,8 +13,8 @@ PNM::PNM(string name) {
 		in.close();
 		throw runtime_error("Error: Wrong width/height/depth data");
 	}
-	char r, g, b;
-	in.read(&r, sizeof(unsigned char));
+	char c;
+	in.read(&c, sizeof(unsigned char));
 	pnm.assign(height, vector<color>(width));
 	switch (type.second) {
 	case '5':
@@ -24,10 +24,10 @@ PNM::PNM(string name) {
 					in.close();
 					throw("Error: Not enough pixels in input file");
 				}
-				in.read(&r, sizeof(unsigned char));
-				g = r;
-				b = r;
-				pnm[i][j] = { (unsigned char)r,(unsigned char)g,(unsigned char)b };
+				in.read(&c, sizeof(unsigned char));
+				pnm[i][j].r = (unsigned char)c;
+				pnm[i][j].g = (unsigned char)c;
+				pnm[i][j].b = (unsigned char)c;
 			}
 		}
 		break;
@@ -38,18 +38,20 @@ PNM::PNM(string name) {
 					in.close();
 					throw("Error: Not enough pixels in input file");
 				}
-				in.read(&r, sizeof(unsigned char));
+				in.read(&c, sizeof(unsigned char));
+				pnm[i][j].r = (unsigned char)c;
 				if (in.eof()) {
 					in.close();
 					throw("Error: Not enough pixels in input file");
 				}
-				in.read(&g, sizeof(unsigned char));
+				in.read(&c, sizeof(unsigned char));
+				pnm[i][j].g = (unsigned char)c;
 				if (in.eof()) {
 					in.close();
 					throw("Error: Not enough pixels in input file");
 				}
-				in.read(&b, sizeof(unsigned char));
-				pnm[i][j] = { (unsigned char)r,(unsigned char)g,(unsigned char)b };
+				in.read(&c, sizeof(unsigned char));
+				pnm[i][j].b = (unsigned char)c;
 			}
 		}		
 		break;
@@ -102,11 +104,9 @@ void PNM::YCbCr_601_RGB() {
 			double r = y + (2. - 2. * k_r) * c_r,
 				g = y - (k_b / k_g) * (2. - 2. * k_b) * c_b - (k_r / k_g) * (2. - 2. * k_r) * c_r,
 				b = y + (2. - 2. * k_b) * c_b;
-			pnm[i][j] = {
-				(unsigned char)round(max(min(r * 255.,255.),0.)),
-				(unsigned char)round(max(min(g * 255.,255.),0.)),
-				(unsigned char)round(max(min(b * 255.,255.),0.))
-			};
+			pnm[i][j].r = round(r * 255);
+			pnm[i][j].g = round(g * 255);
+			pnm[i][j].b = round(b * 255);
 		}
 	}
 }
@@ -117,27 +117,23 @@ void PNM::RGB_YCbCr_601() {
 			double r = (double)pnm[i][j].r / 255., g = (double)pnm[i][j].g / 255., b = (double)pnm[i][j].b / 255.;
 			double k_r = 0.299, k_g = 0.587, k_b = 0.114;
 			double y = k_r * r + k_g * g + k_b * b,
-				c_b = -r * k_r / ((1 - k_b) * 2.) - g * k_g / ((1 - k_b) * 2.) + b / 2.,
-				c_r = r / 2. - g * k_g / ((1 - k_r) * 2.) - b * k_b / ((1 - k_r) * 2.);
-			pnm[i][j] = {
-				(unsigned char)round(max(min(y * 255.,255.),0.)),
-				(unsigned char)round(max(min((c_b + 0.5) * 255.,255.),0.)),
-				(unsigned char)round(max(min((c_r + 0.5) * 255.,255.),0.))
-			};
+				c_b = (b - y) / (2. * (1 - k_b)),
+				c_r = (r - y) / (2. * (1 - k_r));
+			pnm[i][j].r = (int)round(y * 255);
+			pnm[i][j].g = (int)round((c_b + 0.5) * 255);
+			pnm[i][j].b = (int)round((c_r + 0.5) * 255);
 		}
 	}
 }
 
 
-void PNM::auto_brightness(int transformation, double offset, double multiplier) {
+void PNM::auto_brightness(int transformation, int offset, double multiplier) {
 	if (transformation == 0) {
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				pnm[i][j] = {
-					(unsigned char)max(min((int)round(((double)pnm[i][j].r - offset) * multiplier),255),0),
-					(unsigned char)max(min((int)round(((double)pnm[i][j].g - offset) * multiplier),255),0),
-					(unsigned char)max(min((int)round(((double)pnm[i][j].b - offset) * multiplier),255),0)
-				};
+				pnm[i][j].r = max(min((int)round((pnm[i][j].r - offset) * multiplier), 255), 0);
+				pnm[i][j].g = max(min((int)round((pnm[i][j].g - offset) * multiplier), 255), 0);
+				pnm[i][j].b = max(min((int)round((pnm[i][j].b - offset) * multiplier), 255), 0);
 			}
 		}
 	}
@@ -145,60 +141,50 @@ void PNM::auto_brightness(int transformation, double offset, double multiplier) 
 		RGB_YCbCr_601();
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				pnm[i][j] = {
-					(unsigned char)max(min((int)round(((double)pnm[i][j].r - offset) * multiplier),255),0),
-					pnm[i][j].g,
-					pnm[i][j].b
-				};
+				pnm[i][j].r = max(min((int)round((pnm[i][j].r - offset) * multiplier), 255), 0);
 			}
 		}
 		YCbCr_601_RGB();
 	}
 	else if (transformation == 2) {
-		double mx = -1e9, mn = 1e9;
+		int mx = -1e9, mn = 1e9;
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				mx = max({ mx,(double)pnm[i][j].r,(double)pnm[i][j].g ,(double)pnm[i][j].b });
-				mn = min({ mn,(double)pnm[i][j].r,(double)pnm[i][j].g ,(double)pnm[i][j].b });
+				mx = max({ mx,pnm[i][j].r,pnm[i][j].g ,pnm[i][j].b });
+				mn = min({ mn,pnm[i][j].r,pnm[i][j].g ,pnm[i][j].b });
 			}
 		}
 		offset = (int)mn;
 		multiplier = 255. / ((int)mx - (int)mn);
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				pnm[i][j] = {
-					(unsigned char)max(min((int)round((pnm[i][j].r - offset) * multiplier),255),0),
-					(unsigned char)max(min((int)round((pnm[i][j].g - offset) * multiplier),255),0),
-					(unsigned char)max(min((int)round((pnm[i][j].b - offset) * multiplier),255),0)
-				};
+				pnm[i][j].r = max(min((int)round((pnm[i][j].r - offset) * multiplier), 255), 0);
+				pnm[i][j].g = max(min((int)round((pnm[i][j].g - offset) * multiplier), 255), 0);
+				pnm[i][j].b = max(min((int)round((pnm[i][j].b - offset) * multiplier), 255), 0);
 			}
 		}
 	}
 	else if (transformation == 3) {
 		RGB_YCbCr_601();
-		double mx = -1e9, mn = 1e9;
+		int mx = -1e9, mn = 1e9;
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				mx = max(mx, (double)pnm[i][j].r);
-				mn = min(mn, (double)pnm[i][j].r);
+				mx = max(mx, pnm[i][j].r);
+				mn = min(mn, pnm[i][j].r);
 			}
 		}
 		offset = (int)mn;
 		multiplier = 255. / ((int)mx - (int)mn);
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				pnm[i][j] = {
-					(unsigned char)max(min((int)round((pnm[i][j].r - offset) * multiplier),255),0),
-					pnm[i][j].g,
-					pnm[i][j].b
-				};
+				pnm[i][j].r = max(min((int)round((pnm[i][j].r - offset) * multiplier), 255), 0);
 			}
 		}
 		YCbCr_601_RGB();
 	}
 	else if (transformation == 4) {
 		vector<int>cnt(256, 0);
-		int mx = 255, mn = 0;
+		int mx = 1e9, mn = 1e-9;
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
 				cnt[pnm[i][j].r]++;
@@ -206,24 +192,32 @@ void PNM::auto_brightness(int transformation, double offset, double multiplier) 
 				cnt[pnm[i][j].b]++;
 			}
 		}
-		int todelete = (int)round(width * height * 3 * 0.0039);
-		
-		for (int deletecount = todelete;deletecount > cnt[mn];deletecount -= cnt[mn]) {
-			mn++;
-		}mn++;
-		for (int deletecount = todelete;deletecount > cnt[mx];deletecount -= cnt[mx]) {
-			mx--;
+		int todelete = (int)round(width * height * 3 * 0.0039);		
+		int deletecount = todelete;	
+		for (mn = 0;mn<256;mn++) {
+			if (cnt[mn] <= deletecount) {
+				deletecount -= cnt[mn];				
+			}
+			else {
+				break;		
+			}
 		}
-
-		offset = (int)mn;
-		multiplier = 255. / ((int)mx - (int)mn);
+		deletecount = todelete;
+		for (mx = 255;mx >= 0;mx--) {
+			if (cnt[mx] <= deletecount) {
+				deletecount -= cnt[mx];
+			}
+			else {
+				break;
+			}
+		}
+		offset = mn;
+		multiplier = 255. / (mx - mn);
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				pnm[i][j] = {
-					(unsigned char)max(min((int)round(((double)pnm[i][j].r - offset) * multiplier),255),0),
-					(unsigned char)max(min((int)round(((double)pnm[i][j].g - offset) * multiplier),255),0),
-					(unsigned char)max(min((int)round(((double)pnm[i][j].b - offset) * multiplier),255),0)
-				};
+				pnm[i][j].r = max(min((int)round((pnm[i][j].r - offset) * multiplier), 255), 0);
+				pnm[i][j].g = max(min((int)round((pnm[i][j].g - offset) * multiplier), 255), 0);
+				pnm[i][j].b = max(min((int)round((pnm[i][j].b - offset) * multiplier), 255), 0);
 			}
 		}
 	}
@@ -237,21 +231,29 @@ void PNM::auto_brightness(int transformation, double offset, double multiplier) 
 			}
 		}
 		int todelete = (int)round(width * height * 0.0039);
-		for (int deletecount = todelete;deletecount > cnt[mn];deletecount -= cnt[mn]) {
-			mn++;
+		int deletecount = todelete;
+		for (mn = 0;mn < 256;mn++) {
+			if (cnt[mn] <= deletecount) {
+				deletecount -= cnt[mn];
+			}
+			else {
+				break;
+			}
 		}
-		for (int deletecount = todelete;deletecount > cnt[mx];deletecount -= cnt[mx]) {
-			mx--;
+		deletecount = todelete;
+		for (mx = 255;mx >= 0;mx--) {
+			if (cnt[mx] <= deletecount) {
+				deletecount -= cnt[mx];
+			}
+			else {
+				break;
+			}
 		}
-		offset = (int)mn;
-		multiplier = 255. / ((int)mx - (int)mn);
+		offset = mn;
+		multiplier = 255. / (mx - mn);
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				pnm[i][j] = {
-					(unsigned char)max(min((int)round(((double)pnm[i][j].r - offset) * multiplier),255),0),
-					pnm[i][j].g,
-					pnm[i][j].b
-				};
+				pnm[i][j].r = max(min((int)round((pnm[i][j].r - offset) * multiplier), 255), 0);
 			}
 		}
 		YCbCr_601_RGB();
