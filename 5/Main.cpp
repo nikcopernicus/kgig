@@ -2,16 +2,20 @@
 
 int main(int argc, char* argv[]) {
 	/*PNM pic("test.ppm");
-	pic.auto_brightness(2, 0, 0);
-	pic.output("out.ppm");*/
+	pic.auto_brightness(4, 6, 1.13333);
+	pic.output("out.ppm");
+	cout << endl;
+	PNM pic2("test.ppm");
+	pic2.auto_brightness(5, 6, 1.13333);
+	pic2.output("out2.ppm");*/
 	if (argc != 4 && argc != 6) {
         cerr << "Error: Wrong number of arguments";
         return 1;
     }    
-	string input, output;
-	int mode = 0;	
-	int offset = 0;
-	double multiplier = 1;
+	string input="test.ppm", output="out.ppm";
+	int mode = -1;	
+	int offset = 2;
+	double multiplier = 0.5;
 	try {
 		input = argv[1];
 		output = argv[2];
@@ -31,7 +35,7 @@ int main(int argc, char* argv[]) {
 		cerr << "Error: Unable to convert arguments";
 		return 1;
 	}
-	if (mode < 0 || mode>5 || offset < -255 || offset>255 || multiplier < 1. / 255. || multiplier>255.) {
+	if (mode < 0 || mode > 5 || offset < -255 || offset > 255 || multiplier < 1. / 255. || multiplier > 255.) {
 		cerr << "Wrong arguments";
 		return 1;
 	}
@@ -60,6 +64,5 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	delete picture;
-
 	return 0;
 }

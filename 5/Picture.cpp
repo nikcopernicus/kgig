@@ -198,49 +198,20 @@ void PNM::auto_brightness(int transformation, double offset, double multiplier) 
 	}
 	else if (transformation == 4) {
 		vector<int>cnt(256, 0);
-		double mx = -1e9, mn = 1e9;
+		int mx = 255, mn = 0;
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				if (type.second == '5') {
-					cnt[(int)pnm[i][j].r]++;
-				}
-				else {
-					cnt[(int)pnm[i][j].r]++;
-					cnt[(int)pnm[i][j].g]++;
-					cnt[(int)pnm[i][j].b]++;
-				}
+				cnt[(int)pnm[i][j].r]++;
+				cnt[(int)pnm[i][j].g]++;
+				cnt[(int)pnm[i][j].b]++;
 			}
 		}
-		int deletecount = 0, todelete = 0, darkest = 0, brightest = 255;
-		if (type.second == '5') {
-			todelete = (double)(width * height) * 0.0039;
+		int todelete = (int)round(width * height * 3 * 0.0039);
+		for (int deletecount = todelete;deletecount >= cnt[mn];deletecount-=cnt[mn]) {
+			mn++;
 		}
-		else {
-			todelete = (double)(width * height) * 3. * 0.0039;
-		}
-		while (deletecount < todelete) {
-			if (deletecount % 2) {
-				while (!cnt[brightest]) brightest--;
-				cnt[brightest]--;
-				deletecount++;
-			}
-			else {
-				while (!cnt[darkest]) darkest++;
-				cnt[darkest]--;
-				deletecount++;
-			}
-		}
-		for (int i = 0; i < 256; i++) {
-			if (cnt[i] > 0) {
-				mn = i;
-				break;
-			}
-		}
-		for (int i = 255; i >= 0; i--) {
-			if (cnt[i] > 0) {
-				mx = i;
-				break;
-			}
+		for (int deletecount = todelete;deletecount >= cnt[mx];deletecount -= cnt[mx]) {
+			mx--;
 		}
 		offset = (int)mn;
 		multiplier = 255. / ((int)mx - (int)mn);
@@ -257,49 +228,18 @@ void PNM::auto_brightness(int transformation, double offset, double multiplier) 
 	else if (transformation == 5) {
 		RGB_YCbCr_601();
 		vector<int>cnt(256, 0);
-		double mx = -1e9, mn = 1e9;
+		int mx = 255, mn = 0;
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				if (type.second == '5') {
-					cnt[(int)pnm[i][j].r]++;
-				}
-				else {
-					cnt[(int)pnm[i][j].r]++;
-					cnt[(int)pnm[i][j].g]++;
-					cnt[(int)pnm[i][j].b]++;
-				}
+				cnt[(int)pnm[i][j].r]++;
 			}
 		}
-		int deletecount = 0, todelete = 0, darkest = 0, brightest = 255;
-		if (type.second == '5') {
-			todelete = (double)(width * height) * 0.0039;
+		int todelete = (int)round(width * height * 0.0039);
+		for (int deletecount = todelete;deletecount >= cnt[mn];deletecount -= cnt[mn]) {
+			mn++;
 		}
-		else {
-			todelete = (double)(width * height) * 3. * 0.0039;
-		}
-		while (deletecount < todelete) {
-			if (deletecount % 2) {
-				while (!cnt[brightest]) brightest--;
-				cnt[brightest]--;
-				deletecount++;
-			}
-			else {
-				while (!cnt[darkest]) darkest++;
-				cnt[darkest]--;
-				deletecount++;
-			}
-		}
-		for (int i = 0; i < 256; i++) {
-			if (cnt[i] > 0) {
-				mn = i;
-				break;
-			}
-		}
-		for (int i = 255; i >= 0; i--) {
-			if (cnt[i] > 0) {
-				mx = i;
-				break;
-			}
+		for (int deletecount = todelete;deletecount >= cnt[mx];deletecount -= cnt[mx]) {
+			mx--;
 		}
 		offset = (int)mn;
 		multiplier = 255. / ((int)mx - (int)mn);
